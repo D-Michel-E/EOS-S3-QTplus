@@ -18,8 +18,8 @@ set_io pad6 IO_6
 set_io pad18 IO_18
 //set_io pad19 IO_19
 //set_io pad20 IO_20
-//set_io pad21 IO_21
-//set_io pad22 IO_22
+set_io pad21 IO_21
+set_io pad22 IO_22
 //set_io pad23 IO_23
 //set_io pad24 IO_24
 //set_io pad25 IO_25

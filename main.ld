@@ -165,3 +165,4 @@ SECTIONS
 	/* Check if data + heap + stack exceeds ram  limit */
 	ASSERT(__StackLimit >= __HeapLimit, "region ram  overflowed with stack")
 }
+GROUP ( libnosys.a )

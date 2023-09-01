@@ -2,7 +2,9 @@
 
 module top ( // IO connections to pads. Uncomment matching lines in io.pcf and configure IOMUX appropriately. 
         input pad6, // USR button
-        output pad18 // blue LED
+        output pad18, // blue LED
+        output pad21, // blue LED
+        output pad22 // blue LED
     );
     
     wire clk0, rst0, clk1, rst1;
@@ -18,10 +20,10 @@ module top ( // IO connections to pads. Uncomment matching lines in io.pcf and c
 
     // Connections to the EOS S3 platform apart from pads defined above.
     qlal4s3b_cell_macro s3io (
-        .Sys_Clk0     ( sys_clk0 ), // output | C16, configured to 12MHz by software
-        .Sys_Clk0_Rst ( sys_rst0 ), // output
-        .Sys_Clk1     ( sys_clk1 ), // output | C21, configured to 1MHz by software
-        .Sys_Clk1_Rst ( sys_rst1 ), // output
+        .Clk_C16     ( sys_clk0 ), // output | C16, configured to 12MHz by software
+        .Clk_C16_Rst ( sys_rst0 ), // output
+        .Clk_C21     ( sys_clk1 ), // output | C21, configured to 1MHz by software
+        .Clk_C21_Rst ( sys_rst1 ), // output
 
         .Device_ID ( 16'hF01D ), // input[15:0] | sets MISC->FB_DESIGN_ID
 
@@ -138,6 +140,8 @@ module top ( // IO connections to pads. Uncomment matching lines in io.pcf and c
 
     // Sets LED to a certain brightness; USR button inverts.
     assign pad18 = (lfsr_state < brightness) ^ ~pad6;
+    assign pad22 = (lfsr_state < brightness) ^ ~pad6;
+    assign pad21 = (lfsr_state < brightness) ^ pad6;
 
     // A 12 MHz 32-bit up-counter whose value gets pushed to FIFO 0 on usr button state change.
     reg [31:0] counter;

@@ -33,6 +33,7 @@
 #include "hw/template/build/top_bit.h"
 
 extern uint32_t uptime_ms; // global from startup.c
+extern uint32_t uptime_us; // global from startup.c
 
 extern uint32_t __etext;
 extern uint32_t __data_start__;
@@ -96,7 +97,7 @@ int main(void)
     while (1)
     {
         // Flash green LED every 1.024s:
-        io_set_green(!(uptime_ms & 0x3ff));
+        // io_set_green(!(uptime_ms & 0x3ff));
 
         // Report USR button state changes:
         uint8_t btn_state = io_get_usrbtn();
@@ -125,8 +126,10 @@ int main(void)
             switch (uart_rx() & 0xff)
             {
             case 'f':
-                printf("Giving control of USR button and blue LED to FPGA...\n");
+                printf("Giving control of USR button and blue red LED to FPGA...\n");
                 IOMUX->PAD[18] = IOMUX_PAD_18_FSEL_FBIO18 | IOMUX_PAD_E_4MA;
+                IOMUX->PAD[22] = IOMUX_PAD_22_FSEL_FBIO22 | IOMUX_PAD_E_4MA;  // Route GPIO6 -> Red LED on Pad 22
+                IOMUX->PAD[21] = IOMUX_PAD_21_FSEL_FBIO21 | IOMUX_PAD_E_4MA;  // Route GPIO5 -> Green LED on Pad 21
                 IOMUX->PAD[6] = IOMUX_PAD_6_FSEL_FBIO6 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE;
                 IOMUX->PAD[7] = IOMUX_PAD_7_FSEL_FBIO7 | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE | IOMUX_PAD_P_PULLDOWN; // keep reset input low.
                 IOMUX->FBIO_SEL_1 = (1 << 6) | (1 << 7);

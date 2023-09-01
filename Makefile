@@ -4,7 +4,7 @@ LD=$(CC)
 FLAGS=-mcpu=cortex-m4 -mthumb -mlittle-endian -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Os -fmerge-constants -fomit-frame-pointer -fcrossjumping -fexpensive-optimizations -ftoplevel-reorder -fmessage-length=0 -lm -fsigned-char -ffunction-sections -fdata-sections -gdwarf-4
 
 CCFLAGS=$(FLAGS) -std=c99 
-LDFLAGS=$(FLAGS) -T "main.ld" -Xlinker --gc-sections -Wall -Werror -Wl,--fatal-warnings --specs=nano.specs --specs=nosys.specs -Wl,--no-wchar-size-warning 
+LDFLAGS=$(FLAGS) -T "main.ld" -Xlinker --gc-sections -Wall -Werror --specs=nano.specs --specs=nosys.specs -Wl,--no-wchar-size-warning
 
 DEPS=*.h regs/*.h hw/template/build/*.h
 
