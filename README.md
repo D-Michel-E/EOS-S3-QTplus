@@ -10,6 +10,8 @@ To get started, have the [GNU Arm Embedded Toolchain](https://developer.arm.com/
 
 The FPGA designs are included in this project as design files and ready-to-use synthesized bitstreams. By default, `make` simply includes the bitstream data in the firmware and the main program will configure the FPGA during runtime. If you want to change the design and re-sythesize, install [QuickLogic's Symbiflow fork](https://github.com/QuickLogic-Corp/quicklogic-fpga-toolchain/) and type `make hw`.
 
+Michel: UPDATE: set up and use f4pga, symbiflow has been redone since the original repo was last updated
+
 A simplified (and rather incomplete) overview of the board and its EOS S3 SoC is shown here:
 
 <a href="docs/overview.pdf"><img src="docs/overview.png" width="768"></a>
