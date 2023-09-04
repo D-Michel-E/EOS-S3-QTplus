@@ -50,10 +50,8 @@
 
 // CPU cycles per millisecond.
 #define CYCLES_PER_MS (72055)
-#define CYCLES_PER_US (72)
 
 uint32_t uptime_ms = 0; // global: uptime in milliseconds, always counting up, wraps in about 49 days.
-uint32_t uptime_us = 0; // global: uptime in milliseconds, always counting up, wraps in about 49 days.
 
 extern uint32_t __etext;
 extern uint32_t __data_start__;

@@ -140,7 +140,7 @@ module top ( // IO connections to pads. Uncomment matching lines in io.pcf and c
 
     // Sets LED to a certain brightness; USR button inverts.
     assign pad18 = (lfsr_state < brightness) ^ ~pad6;
-    assign pad22 = (lfsr_state < brightness) ^ ~pad6;
+    assign pad22 = ((lfsr_state < brightness) ^ ~pad6);
     assign pad21 = (lfsr_state < brightness) ^ pad6;
 
     // A 12 MHz 32-bit up-counter whose value gets pushed to FIFO 0 on usr button state change.

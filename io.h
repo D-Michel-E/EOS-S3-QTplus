@@ -22,6 +22,6 @@ void io_set_red(uint8_t ucOn);
 void io_set_green(uint8_t ucOn);
 void io_set_blue(uint8_t ucOn);
 uint8_t io_get_usrbtn();
-uint16_t io_adc_read();
+uint16_t io_adc_read(uint16_t *returnVal, uint8_t channe); // ADC_CTRL_BAT_MEAS_Msk
 
 #endif

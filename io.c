@@ -65,14 +65,27 @@ uint8_t io_get_usrbtn()
     return (~MISC->IO_INPUT) & 1;
 }
 
-uint16_t io_adc_read()
+uint16_t io_adc_read(uint16_t *returnVal, uint8_t channe)
 {
-    ADC->CTRL |= ADC_CTRL_START_Msk; // start conversion
-    // wait for rising edge
-    while (!(ADC->STATUS & ADC_STATUS_EOC_Msk))
-        ;
-    uint16_t adc_value = ADC->OUT;
-    ADC->CTRL &= ~ADC_CTRL_START_Msk; // stop conversion
+    if(channe == ADC_CTRL_CH1_Msk){
 
-    return adc_value;
+        ADC->CTRL = 0b011; // start conversion
+        // wait for rising edge
+        while (!(ADC->STATUS & ADC_STATUS_EOC_Msk))
+            ;
+        uint16_t adc_value = ADC->OUT;
+        ADC->CTRL &= ~ADC_CTRL_START_Msk; // stop conversion
+        *returnVal = adc_value;
+        return adc_value;
+    } else {
+
+        ADC->CTRL = 0b001; // start conversion
+        // wait for rising edge
+        while (!(ADC->STATUS & ADC_STATUS_EOC_Msk))
+            ;
+        uint16_t adc_value = ADC->OUT;
+        ADC->CTRL &= ~ADC_CTRL_START_Msk; // stop conversion
+        *returnVal = adc_value;
+        return adc_value;
+    }
 }

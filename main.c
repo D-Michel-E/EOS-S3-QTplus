@@ -33,7 +33,6 @@
 #include "hw/template/build/top_bit.h"
 
 extern uint32_t uptime_ms; // global from startup.c
-extern uint32_t uptime_us; // global from startup.c
 
 extern uint32_t __etext;
 extern uint32_t __data_start__;
@@ -62,12 +61,13 @@ int main(void)
     uint32_t erase_addr = 0;
     uint8_t data[256];
     int32_t x, y, z;
-
+    uint16_t aIN = 0;
+    uint16_t bIN = 0;
     // Initialize 115200 8N1 UART on pads 44/45 for printf and output banner:
     uart_init();
     printf("\n\n\n\n");
     printf("SparkFun QuickLogic Thing Plus - EOS S3 MCU + eFPGA Bare-Bones Demo\n");
-    printf("https://github.com/s-holst/EOS-S3-QTplus\n");
+    printf("https://github.com/D-Michel-E/EOS-S3-QTplus\n");
     printf("ROM image size: %d (0x%x) bytes\n", rom_bytes, rom_bytes);
 
     // Set up and verify flash chip communication:
@@ -83,6 +83,7 @@ int main(void)
 
     i2c_accel_init();
     io_init();
+    io_adc_read(&aIN, 0x2);
 
     // ensure Packet FIFO power up
     PMU->FFE_FB_PF_SW_WU |= PMU_FFE_FB_PF_SW_WU_PF_WU_Msk;
@@ -98,7 +99,11 @@ int main(void)
     {
         // Flash green LED every 1.024s:
         // io_set_green(!(uptime_ms & 0x3ff));
-
+                if (MISC->FB_DEVICE_ID == 0xf01d)
+                {
+                io_adc_read(&bIN, 0x2);
+                wb_regs->increments += (bIN - aIN)/40;
+                }
         // Report USR button state changes:
         uint8_t btn_state = io_get_usrbtn();
         if (btn_state != btn_oldstate)
@@ -123,6 +128,7 @@ int main(void)
         // Process commands from UART:
         if (uart_rx_available())
         {
+
             switch (uart_rx() & 0xff)
             {
             case 'f':
@@ -141,7 +147,8 @@ int main(void)
                 break;
             case 'a':
                 i2c_accel_read(&x, &y, &z);
-                printf("X %6d Y %6d Z %6d BAT %d uptime %d\n", x, y, z, io_adc_read(), uptime_ms);
+                io_adc_read(&bIN, 0x2); //0x4
+                printf("X %6d Y %6d Z %6d BAT %d uptime %d\n", x, y, z,bIN, uptime_ms);
                 break;
             case 'r':
                 spi_flash_read(read_addr, data, 256);
