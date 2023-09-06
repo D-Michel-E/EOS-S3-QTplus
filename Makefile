@@ -4,14 +4,14 @@ LD=$(CC)
 FLAGS=-mcpu=cortex-m4 -mthumb -mlittle-endian -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Os -fmerge-constants -fomit-frame-pointer -fcrossjumping -fexpensive-optimizations -ftoplevel-reorder -fmessage-length=0 -lm -fsigned-char -ffunction-sections -fdata-sections -gdwarf-4
 
 CCFLAGS=$(FLAGS) -std=c99 
-LDFLAGS=$(FLAGS) -T "main.ld" -Xlinker --gc-sections -Wall -Werror --specs=nano.specs --specs=nosys.specs -Wl,--no-wchar-size-warning
+LDFLAGS=$(FLAGS) -T "main.ld" -Xlinker --gc-sections -Wall -Werror --specs=nano.specs --specs=nosys.specs -Wl,--no-wchar-size-warning -u _printf_float
 
-DEPS=*.h regs/*.h hw/template/build/*.h
+DEPS=*.h regs/*.h hw/template/build/*.h libraries/ads1220/ads1220.h
 
 %.o: %.c $(DEPS)
 	$(CC) -o $@ -c $< $(CCFLAGS)
 
-main.elf: startup.o main.o uart.o i2c.o spi.o io.o fpga.o
+main.elf: startup.o main.o uart.o i2c.o spi.o io.o fpga.o libraries/ads1220/ads1220.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 main.bin: main.elf

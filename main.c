@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 #include <sys/param.h>
 
 #include "regs/aip.h"
@@ -23,12 +24,15 @@
 #include "regs/fpga.h"
 #include "regs/pmu.h"
 #include "regs/pkfb.h"
+#include "regs/timer.h"
 
 #include "uart.h"
 #include "i2c.h"
 #include "spi.h"
 #include "io.h"
 #include "fpga.h"
+
+#include "libraries/ads1220/ads1220.h"
 
 #include "hw/template/build/top_bit.h"
 
@@ -52,6 +56,55 @@ typedef struct
     volatile uint32_t lfsr;
 } tWBregs;
 
+void CS_UP(void)
+{
+    // GPIO_CS_GROUP and GPIO_CS_PIN depend on your schematic.
+    // HAL_GPIO_WritePin(GPIO_CS_GROUP, GPIO_CS_PIN, GPIO_PIN_SET);
+}
+void CS_DOWN(void)
+{
+    // GPIO_CS_GROUP and GPIO_CS_PIN depend on your schematic.
+    // HAL_GPIO_WritePin(GPIO_CS_GROUP, GPIO_CS_PIN, GPIO_PIN_RESET);
+}
+void TRANSMIT(uint8_t data)
+{
+    // SPI_DRIVER depends on your configuration.
+    spi_tx (0x2, &data, sizeof(uint8_t));
+}
+uint32_t flipUint16Horizontally(uint32_t bitmask)
+{
+    uint32_t flippedMask = 0;
+    for(unsigned int bit = 0; bit < 32; ++bit)
+    {
+        uint32_t currentBit = (bitmask & (1 << bit)) >> bit;
+        flippedMask |= currentBit << (31 - bit);
+    }
+    return flippedMask;
+}
+
+uint32_t RECEIVE(void)
+{
+    uint32_t dataR = 0;
+    // SPI_DRIVER depends on your configuration.
+    spi_rx (0x2, &dataR, 3);
+    // printf("\n%x\n",flipUint16Horizontally(dataR)/256);
+    return dataR;
+}
+void DELAY(uint32_t us)
+{
+    uint32_t current_tvalue = TIMER->VALUE; // 2 MHz down-counter
+    uint32_t last_systick_tvalue = current_tvalue;
+    // DELAY_US depends on your code.
+    while(-current_tvalue < -last_systick_tvalue + us*5){
+    // printf("%i\n",current_tvalue);
+     current_tvalue = TIMER->VALUE; // 2 MHz down-counter
+    }
+    // DELAY_US(us);
+}
+ADS1220_Handler_t Handler = {0};
+
+
+
 int main(void)
 {
     tWBregs *wb_regs = (tWBregs *)FPGA_WB_BASE;
@@ -63,6 +116,12 @@ int main(void)
     int32_t x, y, z;
     uint16_t aIN = 0;
     uint16_t bIN = 0;
+
+    Handler.ADC_CS_HIGH = CS_UP;
+    Handler.ADC_CS_LOW = CS_DOWN;
+    Handler.ADC_Transmit = TRANSMIT;
+    Handler.ADC_Receive = RECEIVE;
+    Handler.ADC_Delay_US = DELAY;
     // Initialize 115200 8N1 UART on pads 44/45 for printf and output banner:
     uart_init();
     printf("\n\n\n\n");
@@ -95,15 +154,26 @@ int main(void)
 
     printf("\nPress <space> for help.\n");
 
+
+
+    int32_t ADC_Data;
+
+// Passing Parameters as NULL to use default configurations.
+    ADS1220_Parameters_t paramsADS;
+    paramsADS.InputMuxConfig = P0NAVSS;
+    paramsADS.VoltageRef = AnalogSupply;
+    paramsADS.DataRate = _1000_SPS_;
+    paramsADS.OperatingMode = NormalMode;
+    paramsADS.PGAdisable = 1;
+    ADS1220_Init(&Handler, &paramsADS);
+    // ADS1220_ActivateContinuousMode(&Handler);
+    // Default conversion mode is Single-shot
+
+    ADS1220_StartSync(&Handler);
     while (1)
     {
-        // Flash green LED every 1.024s:
-        // io_set_green(!(uptime_ms & 0x3ff));
-                if (MISC->FB_DEVICE_ID == 0xf01d)
-                {
-                io_adc_read(&bIN, 0x2);
-                wb_regs->increments += (bIN - aIN)/40;
-                }
+            // printf("\ndrdy: %i\n", ((~MISC->IO_INPUT)  & 0b00001000    ));
+
         // Report USR button state changes:
         uint8_t btn_state = io_get_usrbtn();
         if (btn_state != btn_oldstate)
@@ -125,10 +195,27 @@ int main(void)
             btn_oldstate = btn_state;
         }
 
+    while(((~MISC->IO_INPUT)  & 0b00001000)!=8){}
+    ADS1220_ReadData(&Handler, &ADC_Data);
+    ADS1220_StartSync(&Handler);
+    // ADC_Data = flipUint16Horizontally(ADC_Data)/256;
+    printf("ADCRaw: %u\n", ADC_Data);
+    // printf("\nADC Raw: %x\n", ((~MISC->IO_INPUT)  & 0b00001000));
         // Process commands from UART:
         if (uart_rx_available())
         {
 
+
+    // 2.048 is internal voltage reference and is used as default config.
+    // 1 is default adc gain value and it must be equivalent to the gain config in ADS1220_Parameters_t.
+    // printf("ADC Raw: 0x%X | ADC Voltage : %f\r\n", ADC_Data, ADCValueToVoltage(ADC_Data, 2.048, 1));
+        // Flash green LED every 1.024s:
+        // io_set_green(!(uptime_ms & 0x3ff));
+                if (MISC->FB_DEVICE_ID == 0xf01d)
+                {
+                io_adc_read(&bIN, 0x2);
+                wb_regs->increments += (bIN - aIN)/40;
+                }
             switch (uart_rx() & 0xff)
             {
             case 'f':

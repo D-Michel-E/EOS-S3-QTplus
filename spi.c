@@ -27,8 +27,8 @@ int spi_init()
     IOMUX->PAD[34] = IOMUX_PAD_34_FSEL_SPIm_CLK | IOMUX_PAD_E_4MA;
     IOMUX->PAD[38] = IOMUX_PAD_38_FSEL_SPIm_MOSI | IOMUX_PAD_E_4MA;
     IOMUX->PAD[39] = IOMUX_PAD_39_FSEL_SPIm_SSn1 | IOMUX_PAD_E_4MA;
-    // IOMUX->PAD[23] = IOMUX_PAD_23_FSEL_SPIm_SSn2 | IOMUX_PAD_E_4MA;
-    IOMUX->PAD[25] = IOMUX_PAD_25_FSEL_SPIm_SSn3 | IOMUX_PAD_E_4MA;
+    IOMUX->PAD[27] = IOMUX_PAD_27_FSEL_SPIm_SSn2 | IOMUX_PAD_E_4MA;
+    // IOMUX->PAD[25] = IOMUX_PAD_25_FSEL_SPIm_SSn3 | IOMUX_PAD_E_4MA;
 
     IOMUX->PAD[36] = IOMUX_PAD_36_FSEL_SPIm_MISO | IOMUX_PAD_OEN_DISABLE | IOMUX_PAD_REN_ENABLE;
     IOMUX->SPIm_MISO_SEL = IOMUX_SPIm_MISO_SEL_PAD36;
@@ -54,7 +54,7 @@ int spi_tx_with_idle_cb(const uint8_t ucChipMsk, const uint8_t *pucTxData, const
 
     // Disable RX FIFO.
     SPI->SSIENR = 0;
-    SPI->CTRLR0 = SPI_CTRLR0_TMOD_TX | SPI_CTRLR0_DATA_FRAME_SIZE(8);
+    SPI->CTRLR0 =  SPI_CTRLR0_CLK_PHASE_2EDGE | SPI_CTRLR0_TMOD_TX | SPI_CTRLR0_DATA_FRAME_SIZE(8);
     SPI->SSIENR = 1;
 
     for (int i = 0; i < uiTxLen; i++)
@@ -65,7 +65,7 @@ int spi_tx_with_idle_cb(const uint8_t ucChipMsk, const uint8_t *pucTxData, const
             if (cb)
                 cb();
         }
-        SPI->DR0 = pucTxData[i];
+        SPI->DR0 = pucTxData[uiTxLen-1-i];
     }
 
     SPI->SER = ucChipMsk; // Ensure transmission has started.
@@ -90,7 +90,7 @@ int spi_rx(const uint8_t ucChipMsk, uint8_t *pucRxData, const uint32_t uiRxLen)
 
     // Disable TX FIFO and set number of frames to read.
     SPI->SSIENR = 0;
-    SPI->CTRLR0 = SPI_CTRLR0_TMOD_RX | SPI_CTRLR0_DATA_FRAME_SIZE(8);
+    SPI->CTRLR0 = SPI_CTRLR0_CLK_PHASE_2EDGE | SPI_CTRLR0_TMOD_RX  | SPI_CTRLR0_DATA_FRAME_SIZE(8);
     SPI->CTRLR1 = uiRxLen - 1;
     SPI->SSIENR = 1;
 
