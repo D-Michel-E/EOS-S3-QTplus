@@ -12,6 +12,8 @@ The FPGA designs are included in this project as design files and ready-to-use s
 
 Michel: UPDATE: set up and use f4pga, symbiflow has been redone since the original repo was last updated
 
+Ill be archiving this fork as I am switching over to using the QORC vendor tooling. While it relies on FreeRTOS, that is not a limitation for me. This project that I forked gave me valuable information into how the device worked and I implemented a rudiamentary ADS1220 library that worked just enough to print values over serial to a software plotter as I adjusted a potentiometer.
+
 A simplified (and rather incomplete) overview of the board and its EOS S3 SoC is shown here:
 
 <a href="docs/overview.pdf"><img src="docs/overview.png" width="768"></a>
